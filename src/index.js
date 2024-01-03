@@ -16,6 +16,8 @@ app.post('/user',(req, res)=>{
     })
 })
 
+
+
 //task route POST request
 app.post('/task', (req, res)=>{
     const newTask = new task(req.body);
@@ -27,6 +29,28 @@ app.post('/task', (req, res)=>{
         })
 })
 
+//task route to GET data  find all method
+app.get('/task', (req, res)=>{
+   
+    task.find({}).then((task)=>{
+        res.send(task)
+    }).catch((e)=>{
+        res.send(e)
+    })
+})
+//task route to GET data findById method
+app.get('/task/:id', (req, res)=>{
+    const id = req.params.id;
+    task.findById(id).then((task)=>{
+     if(!task){
+        return res.status(404).send()
+     }
+        res.send(task)
+    }).catch((e)=>{
+        res.status(500).send(e)
+    })
+
+})
 app.listen(port, ()=>{
     console.log("the server is up and running at port", port);
 })
