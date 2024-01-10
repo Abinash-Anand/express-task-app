@@ -14,7 +14,30 @@ router.post('/user', async (req, res)=>{
     }
     
 })
+//USER ROUTE TO UPDATE A USER BY PATCH() {UPDATING A SINGLE USER}
+router.patch('/user/:id', async (req, res)=>{
+  const users = Object.keys(req.body)
+  const allowedUpdates=["name","email","password","age"]
+  const isValidUpdate = users.every((upData)=>allowedUpdates.includes(upData))
+  if(!isValidUpdate){
+      return res.status(404).send("Invalid Update!")
+  }
+    try {
+     const updateUser = await user.findById(req.params.id);
+     if(!updateUser){
+      return res.status(404).send()
+     }
+      users.forEach((update)=>updateUser[update] = req.body[update])
+      await updateUser.save()
+    //  const updateUser =  await user.findByIdAndUpdate(req.params.id,req.body,{new:true, runValidators:true})
+    
+     res.status(200).send(updateUser);
 
+    } catch (error) {
+      res.status(400).send(error)
+    }
+    
+}) 
 //task route to GET data find() method {READING ALLL USERS}
 router.get('/user', async (req, res)=>{
     try {
@@ -42,20 +65,7 @@ router.get('/user/:id',async (req, res)=>{
      res.status(500).send(error)   
     }
 })
-//USER ROUTE TO UPDATE A USER BY PATCH() {UPDATING A SINGLE USER}
-router.patch('/user/:id', async (req, res)=>{
-    try {
-     const updateUser =  await user.findByIdAndUpdate(req.params.id,req.body,{new:true, runValidators:true})
-     if(!updateUser){
-      return res.status(404).send()
-     }
-     res.status(200).send(updateUser);
 
-    } catch (error) {
-      res.status(400).send(error)
-    }
-    
-}) 
 //SELETE METHOD {DELETING A SINGLE USER }
 router.delete('/user/:id', async (req, res) => {
         try {
@@ -67,6 +77,6 @@ router.delete('/user/:id', async (req, res) => {
         } catch (error) {
           res.status(400).send(error); // Corrected to send the 'error' variable
         }
-      });
+});
       
       module.exports = router;
