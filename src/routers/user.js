@@ -16,26 +16,26 @@ router.post('/user', async (req, res)=>{
 })
 //USER ROUTE TO UPDATE A USER BY PATCH() {UPDATING A SINGLE USER}
 router.patch('/user/:id', async (req, res)=>{
-  const users = Object.keys(req.body)
+  const updates = Object.keys(req.body)
   const allowedUpdates=["name","email","password","age"]
-  const isValidUpdate = users.every((upData)=>allowedUpdates.includes(upData))
-  if(!isValidUpdate){
+  const isValidOperation = updates.every((upData)=>allowedUpdates.includes(upData))
+  //Validation
+  if(!isValidOperation){
       return res.status(404).send("Invalid Update!")
   }
     try {
-     const updateUser = await user.findById(req.params.id);
-     if(!updateUser){
+     const User = await user.findById(req.params.id);
+     if(!User){
       return res.status(404).send()
      }
-      users.forEach((update)=>updateUser[update] = req.body[update])
-      await updateUser.save()
-    //  const updateUser =  await user.findByIdAndUpdate(req.params.id,req.body,{new:true, runValidators:true})
-    
-     res.status(200).send(updateUser);
+      updates.forEach((update)=>User[update] = req.body[update])
+      await User.save()
+      res.status(200).send(User);
 
     } catch (error) {
       res.status(400).send(error)
     }
+    //  const updateUser =  await user.findByIdAndUpdate(req.params.id,req.body,{new:true, runValidators:true})
     
 }) 
 //task route to GET data find() method {READING ALLL USERS}
@@ -78,5 +78,22 @@ router.delete('/user/:id', async (req, res) => {
           res.status(400).send(error); // Corrected to send the 'error' variable
         }
 });
-      
+   
+//login
+router.post('/user/login', async (req, res) => {
+  try {
+    //here i was having an error. the error was that i was getting the email in uppercase as mongodb is case sensitive 
+    //therefore i have used toLowerCase to lowercase the email id and compare correctly
+    // const logUser = await user.findByCredentials(req.body.email, req.body.password);
+    const logUser = await user.findByCredentials(req.body.email.toLowerCase(), req.body.password);
+    res.status(200).send(logUser);
+  }  catch (error) {
+    console.log("Error during login:", error);
+    res.status(400).send("Invalid credentials");
+}
+
+});
+
+
+
       module.exports = router;
