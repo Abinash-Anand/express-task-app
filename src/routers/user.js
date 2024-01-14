@@ -1,5 +1,6 @@
 const express = require('express')
 const user = require('../models/user')
+const auth = require('../middleware/auth')
 const router = new express.Router()
 
 //user route POST request {CREATING}
@@ -7,13 +8,33 @@ router.post('/user', async (req, res)=>{
    
     try {
         const userOne  = new user(req.body)
+        const token =await  userOne.generateAuthToken()
         await userOne.save()
-        res.status(201).send(userOne)
+        res.status(201).send({userOne, token})
     } catch (error) {
         res.status(400).send(error)
     }
     
 })
+//logIn 
+router.post('/user/login', async (req, res) => {
+  try {
+    //here i was having an error. the error was that i was getting the email in uppercase as mongodb is case sensitive 
+    //therefore i have used toLowerCase to lowercase the email id and compare correctly
+    // const logUser = await user.findByCredentials(req.body.email, req.body.password);
+
+    const logUser = await user.findByCredentials(req.body.email.toLowerCase(), req.body.password);
+    const token = await logUser.generateAuthToken()
+    res.send({logUser, token})
+    // res.status(200).send(user);
+  }  catch (error) {
+    console.log("Error during login:", error);
+    res.status(400).send("Invalid credentials");
+}
+
+});
+
+
 //USER ROUTE TO UPDATE A USER BY PATCH() {UPDATING A SINGLE USER}
 router.patch('/user/:id', async (req, res)=>{
   const updates = Object.keys(req.body)
@@ -39,13 +60,8 @@ router.patch('/user/:id', async (req, res)=>{
     
 }) 
 //task route to GET data find() method {READING ALLL USERS}
-router.get('/user', async (req, res)=>{
-    try {
-          const userFinder = await user.find({})
-          res.status(200).send(userFinder)
-    } catch (error) {
-      res.status(400).send(error)
-    }
+router.get('/user/me',auth, async (req, res)=>{
+   res.status(200).send(req.User)
   
   })
 
@@ -79,21 +95,6 @@ router.delete('/user/:id', async (req, res) => {
         }
 });
    
-//login
-router.post('/user/login', async (req, res) => {
-  try {
-    //here i was having an error. the error was that i was getting the email in uppercase as mongodb is case sensitive 
-    //therefore i have used toLowerCase to lowercase the email id and compare correctly
-    // const logUser = await user.findByCredentials(req.body.email, req.body.password);
-    const logUser = await user.findByCredentials(req.body.email.toLowerCase(), req.body.password);
-    res.status(200).send(logUser);
-  }  catch (error) {
-    console.log("Error during login:", error);
-    res.status(400).send("Invalid credentials");
-}
-
-});
 
 
-
-      module.exports = router;
+module.exports = router;
